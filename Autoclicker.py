@@ -55,7 +55,6 @@ class MainWindow(QMainWindow):
         ms = int(self.delay_input.text())
         thread = threading.Thread(target=clicker.clicker, args=(ms,))
         thread.start()
-        print(ms)
 
 def Main():
     app = QApplication(sys.argv)
