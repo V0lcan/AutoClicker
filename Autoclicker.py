@@ -1,7 +1,10 @@
-import sys, clicker
+import sys, clicker, ctypes, threading
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QLineEdit
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt
+
+app_id = 'Volcan\'s Autoclicker'
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
 
 class MainWindow(QMainWindow):
 
@@ -22,7 +25,7 @@ class MainWindow(QMainWindow):
         main_label.setFont(QFont('Arial', 14))
         main_label.setGeometry(100, 10, 200, 30)
         main_label.setStyleSheet("color: white;"
-                            "padding: 5px;")
+                                 "padding: 5px;")
         main_label.setAlignment(Qt.AlignCenter)
 
         # Label for the delay
@@ -30,35 +33,37 @@ class MainWindow(QMainWindow):
         delay_label.setFont(QFont('Arial', 10))
         delay_label.setGeometry(50, 50, 100, 30)
         delay_label.setStyleSheet("color: white;"
-                            "padding: 5px;")
+                                  "padding: 5px;")
         
         # Input field for the delay
         self.delay_input = QLineEdit(self)
         self.delay_input.setGeometry(150, 50, 100, 30)
         self.delay_input.setStyleSheet("color: white;"
-                            "padding: 5px;"
-                            "border: 1px solid #292929;"
-                            "font-size: 12px;")
+                                       "padding: 5px;"
+                                       "border: 1px solid #292929;"
+                                       "font-size: 12px;")
         
         # Label for the window select
         instruction_label = QLabel("When the program is running press O to toggle\nor P to stop the autoclicker.", self)
         instruction_label.setFont(QFont('Arial', 10))
         instruction_label.setGeometry(60, 90, 300, 50)
         instruction_label.setStyleSheet("color: white;"
-                    "padding: 0px;")
+                                        "padding: 0px;")
         instruction_label.setAlignment(Qt.AlignCenter)
         
         # Start buttonq
         start_button = QPushButton("Start", self)
         start_button.setGeometry(150, 150, 100, 30)
         start_button.setStyleSheet("color: white;"
-                            "padding: 5px;")
+                                   "padding: 5px;")
         start_button.clicked.connect(self.start_on_click)
 
     # Function to start the autoclicker
     def start_on_click(self):
-        ms = self.delay_input.text()
-        clicker.clicker(int(ms))
+        ms = int(self.delay_input.text())
+        thread = threading.Thread(target=clicker.clicker, args=(ms,))
+        thread.start()
+        print(ms)
 
 def Main():
     app = QApplication(sys.argv)
