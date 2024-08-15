@@ -1,4 +1,5 @@
 An autoclicker that I made to use for a fishing farm in minecraft. Can be used for other things too.
+![Alt Text](https://github.com/V0lcan/autoclicker-gif/blob/main/autoclicker.gif?raw=true)
 
 # How to use:
 1. Choose a delay value.
