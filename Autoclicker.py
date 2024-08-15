@@ -66,7 +66,6 @@ class MainWindow(QMainWindow):
     def start_on_click(self):
         ms = int(self.delay_input.text())
         button_toggle = self.m1_radio.isChecked()
-        print(ms, button_toggle)
 
         thread = threading.Thread(target=clicker.clicker, args=(ms, button_toggle))
         thread.start()
