@@ -3,11 +3,14 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QLin
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt
 
+# App ID for the taskbar icon
 app_id = 'Volcan\'s Autoclicker'
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
 
+# Main window class
 class MainWindow(QMainWindow):
 
+    # Constructor
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Volcan's Autoclicker")
@@ -18,6 +21,7 @@ class MainWindow(QMainWindow):
 
         self.initUI()
 
+    # Function to initialize the UI
     def initUI(self):
 
         # Label for the delay
@@ -69,7 +73,6 @@ class MainWindow(QMainWindow):
 
         thread = threading.Thread(target=clicker.clicker, args=(ms, button_toggle))
         thread.start()
-
 
 def Main():
     app = QApplication(sys.argv)
