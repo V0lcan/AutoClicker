@@ -2,10 +2,15 @@ import time, threading
 from pynput.mouse import Button, Controller
 from pynput.keyboard import Listener, KeyCode
 
-def clicker(delay_input):
+def clicker(delay_input, button_toggle):
+
+    if button_toggle:
+        m1 = Button.left
+    else:
+        m1 = Button.right
 
     mouse = Controller()
-    m1 = Button.left
+    #m1 = Button.left
     autoclick_toggle = KeyCode(char='o')
     autoclick_exit = KeyCode(char='p')
     delay = delay_input / 1000
