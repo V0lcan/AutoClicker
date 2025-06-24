@@ -17,7 +17,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 400, 180)
         self.setFixedSize(self.width(), self.height())
         self.setWindowIcon(QIcon("./assets/icon.png"))
-        self.setStyleSheet("background-image: url(./assets/main_bg.jpg);")
+        self.setStyleSheet("background-color: #101010;")
 
         self.initUI()
 
@@ -43,13 +43,13 @@ class MainWindow(QMainWindow):
         self.m1_radio = QRadioButton("M1", self)
         self.m1_radio.setGeometry(150, 50, 50, 30)
         self.m1_radio.setStyleSheet("color: white;"
-                               "padding: 5px;")
+                                    "padding: 5px;")
         self.m1_radio.setChecked(True)
 
         self.m2_radio = QRadioButton("M2", self)
         self.m2_radio.setGeometry(200, 50, 50, 30)
         self.m2_radio.setStyleSheet("color: white;"
-                                 "padding: 5px;")
+                                    "padding: 5px;")
 
         # Label for the window select
         instruction_label = QLabel("When the program is running press O to toggle\nor P to stop the autoclicker.", self)
@@ -63,7 +63,8 @@ class MainWindow(QMainWindow):
         start_button = QPushButton("Start", self)
         start_button.setGeometry(150, 130, 100, 30)
         start_button.setStyleSheet("color: white;"
-                                   "padding: 5px;")
+                                   "padding: 5px;"
+                                   "border: 1px solid #292929;")
         start_button.clicked.connect(self.start_on_click)
 
     # Function to start the autoclicker
