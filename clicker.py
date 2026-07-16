@@ -1,63 +1,112 @@
-import time, threading
+import random, threading, time
 from pynput.mouse import Button, Controller
-from pynput.keyboard import Listener, KeyCode
+from pynput.keyboard import Key, KeyCode, Listener
 
-def clicker(delay_input, button_toggle):
+# Hotkeys offered in the UI. Function keys are the default because a letter
+# key fires even while typing in another window.
+HOTKEYS = {
+    "F6": Key.f6,
+    "F7": Key.f7,
+    "F8": Key.f8,
+    "F9": Key.f9,
+    "F10": Key.f10,
+    "O": KeyCode(char='o'),
+    "P": KeyCode(char='p'),
+}
 
-    # If m1 is selected, set the button to left, else set it to right
-    if button_toggle:
-        m1 = Button.left
-    else:
-        m1 = Button.right
 
-    mouse = Controller()
+class Clicker(threading.Thread):
 
-    # Keycodes for the toggle and exit keys
-    autoclick_toggle = KeyCode(char='o')
-    autoclick_exit = KeyCode(char='p')
+    # Constructor
+    def __init__(self, on_stopped=None):
+        super().__init__(daemon=True)
+        self.delay = 1.0
+        self.button = Button.left
+        self.jitter = 0.0
+        self.limit = 0
+        self.clicks = 0
+        self.on_stopped = on_stopped
+        self.mouse = Controller()
+        self._clicking = threading.Event()
+        self._shutdown = threading.Event()
 
-    # Convert the delay to seconds
-    delay = delay_input / 1000
+    @property
+    def running(self):
+        return self._clicking.is_set() and not self._shutdown.is_set()
 
-    class autoclicker(threading.Thread):
-        def __init__(self, delay, button):
-            super().__init__()
-            self.delay = delay
-            self.button = button
-            self.running = False
-            self.program_running = True
+    # Functions used to toggle the clicking
+    def start_clicking(self):
+        self.clicks = 0
+        self._clicking.set()
 
-        # Functions used to toggle the clicking
-        def start_clicking(self):
-            self.running = True
+    def stop_clicking(self):
+        self._clicking.clear()
 
-        def stop_clicking(self):
-            self.running = False
-
-        # Function to exit the program
-        def exit(self):
+    def toggle(self):
+        if self.running:
             self.stop_clicking()
-            self.program_running = False
+        else:
+            self.start_clicking()
 
-        def run(self):
-            while self.program_running:
-                while self.running:
-                    mouse.click(self.button)
-                    time.sleep(self.delay)
-                time.sleep(0.1)
+    # Function to exit the program
+    def shutdown(self):
+        self._shutdown.set()
+        # Wakes run() out of its idle wait so the thread can exit
+        self._clicking.set()
 
-    click_thread = autoclicker(delay, m1)
-    click_thread.start()
+    # Random interval within +/- jitter of the delay
+    def interval(self):
+        if not self.jitter:
+            return self.delay
+        return max(0.001, random.uniform(self.delay - self.jitter, self.delay + self.jitter))
 
-    def on_press(key):
-        if key == autoclick_toggle:
-            if click_thread.running:
-                click_thread.stop_clicking()
-            else:
-                click_thread.start_clicking()
-        elif key == autoclick_exit:
-            click_thread.exit()
-            listener.stop()
+    def run(self):
+        while not self._shutdown.is_set():
+            self._clicking.wait()
+            if self._shutdown.is_set():
+                break
 
-    with Listener(on_press=on_press) as listener:
-        listener.join()
+            next_click = time.perf_counter()
+            while self._clicking.is_set() and not self._shutdown.is_set():
+                self.mouse.click(self.button)
+                self.clicks += 1
+
+                if self.limit and self.clicks >= self.limit:
+                    self.stop_clicking()
+                    if self.on_stopped:
+                        self.on_stopped()
+                    break
+
+                # Advancing an absolute deadline keeps the interval from
+                # drifting by however long each click takes
+                next_click += self.interval()
+                self._shutdown.wait(max(0.0, next_click - time.perf_counter()))
+
+
+class HotkeyListener:
+
+    # Constructor. Bindings map a pynput key to a callback, which is invoked
+    # on the listener's own thread.
+    def __init__(self, bindings):
+        self.bindings = bindings
+        self.listener = None
+
+    def start(self):
+        self.listener = Listener(on_press=self.on_press)
+        self.listener.daemon = True
+        self.listener.start()
+
+    def stop(self):
+        if self.listener:
+            self.listener.stop()
+            self.listener = None
+
+    def on_press(self, key):
+        # Shift turns 'o' into 'O', which would otherwise miss the binding
+        if isinstance(key, KeyCode) and key.char:
+            key = KeyCode(char=key.char.lower())
+
+        for bound, callback in self.bindings.items():
+            if key == bound:
+                callback()
+                return
