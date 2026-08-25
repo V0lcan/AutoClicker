@@ -151,9 +151,13 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Invalid hotkeys", "The toggle and stop keys must differ.")
             return
 
-        self.clicker.delay = int(self.delay_input.text()) / 1000
-        self.clicker.jitter = int(self.jitter_input.text() or 0) / 1000
-        self.clicker.limit = int(self.limit_input.text() or 0)
+        try:
+            self.clicker.delay = int(self.delay_input.text()) / 1000
+            self.clicker.jitter = int(self.jitter_input.text() or 0) / 1000
+            self.clicker.limit = int(self.limit_input.text() or 0)
+        except ValueError:
+            QMessageBox.warning(self, "Invalid input", "Delay, jitter and stop-after must be whole numbers.")
+            return
         self.clicker.button = Button.left if self.m1_radio.isChecked() else Button.right
 
         self.listener = clicker.HotkeyListener({
